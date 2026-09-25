@@ -108,3 +108,17 @@ node scripts/backtest.mjs historical-predictions.json
 - TMD: https://www.tmd.go.th/service/serviceData
 
 API free tier ของ Open-Meteo ใช้ตามเงื่อนไข non-commercial และอัตราจำกัด ต้องตรวจ license/แผนบริการก่อน production หน้าดูข้อมูลนี้ใช้ refresh/cache เพื่อลดการเรียกซ้ำ
+
+## Measured-data risk screening (version 1)
+The overview now reads ThaiWater public observations: current water levels/bank levels/discharge, hourly water history, daily annual water series, observed 24-hour rain, and monthly daily rain history. Google approval is not required for this view. Refresh is on demand and every 15 minutes while open; this is not a background alert scheduler.
+
+Risk rules are provisional and displayed in the UI: <=0.5 m below station bank is high watch; <=1.5 m, >=0.3 m rise over approximately 24 hours, or >=35 mm observed 24-hour rain is watch. Only observations <=6 hours old are assessed. Upstream signals are basin context, never evidence of inundation across a district. Missing observations do not become zero or imply safety. Historical comparisons are contextual and cannot downgrade threshold alerts. No calibrated flood probability or arrival time is claimed.
+
+River comparison uses the same station and month/day over 30 days. Rain compares the current month up to yesterday with the same station/days last year; only matched valid days enter both totals, with coverage shown. Some districts have rain but no connected local water/bank station. The risk panel does not send Messenger messages; the existing official-alert dispatcher remains separate.
+
+Validation: `node scripts/test-safety.mjs`; bundle `tests/risk.test.ts` with esbuild and run Node's test runner. `scripts/check-risk.mjs` checks live data UI, district switch, flow chart, and mobile overflow; provide PLAYWRIGHT_MODULE if Playwright is outside the project.
+
+## Resident and admin views
+`/` is the simple resident view: search/select one of six Sing Buri districts, remember the valid district ID in localStorage, display the shared observed-data risk assessment, read the summary with an installed Thai voice, and refresh or inspect reasons. `/admin` retains the complete original dashboard. These are separate views, not a new authorization system: the existing owner-only Sites access still protects the whole deployment. No public access or admin role permissions were added.
+
+Run `scripts/check-resident.mjs` with PLAYWRIGHT_MODULE configured to verify search, selection, remembered district, mobile layout, and navigation between views.
